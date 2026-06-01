@@ -1,0 +1,51 @@
+.program fz1_capture
+
+; Pin layout:
+; GP0-GP3: D8-D1 (Data nibble, highest-weight bit on lowest GPIO)
+; GP4: PH2 (Clock)
+; GP5: #CE (Chip Enable, active low)
+; GP6: #OP (Command/Data type)
+
+.wrap_target
+    wait 0 gpio 5       ; Wait for #CE (GP5) to be low
+    
+    wait 1 gpio 4       ; Wait for PH2 (GP4) to go high (Rising edge)
+    nop [31]            ; Delay ~250ns to debounce rising edge ringing
+    wait 1 gpio 4       ; Confirm PH2 is still high after debounce
+    in pins, 7          ; Sample the data while the clock is high (valid data)
+    push noblock        ; Push ISR to RX FIFO
+    
+    wait 0 gpio 4       ; Wait for PH2 (GP4) to go low
+    nop [31]            ; Delay ~250ns to debounce falling edge ringing
+    wait 0 gpio 4       ; Confirm PH2 is still low before arming next edge
+.wrap
+
+% c-sdk {
+static inline void fz1_capture_program_init(PIO pio, uint sm, uint offset, uint pin_base, uint pin_count) {
+    pio_sm_config c = fz1_capture_program_get_default_config(offset);
+    
+    // Map the IN pin group to the pin_base
+    sm_config_set_in_pins(&c, pin_base);
+    
+    // Set the pin directions to input at the PIO level
+    for (uint i = 0; i < pin_count; i++) {
+        pio_gpio_init(pio, pin_base + i);
+    }
+    pio_sm_set_consecutive_pindirs(pio, sm, pin_base, pin_count, false);
+    
+    // Shift left, auto push disabled, 32 bits
+    sm_config_set_in_shift(&c, false, false, 32);
+    
+    // Join FIFOs to make a larger RX FIFO (since we only receive)
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+    
+    // Run at full speed (sysclk)
+    sm_config_set_clkdiv(&c, 1.0f);
+    
+    // Initialize state machine
+    pio_sm_init(pio, sm, offset, &c);
+    
+    // Enable state machine
+    pio_sm_set_enabled(pio, sm, true);
+}
+%}

@@ -1,0 +1,20 @@
+# Build products
+build/
+build-*/
+*.elf
+*.elf.map
+*.uf2
+*.bin
+*.hex
+*.dis
+*.o
+*.d
+
+# Local dependency checkouts / references
+pico-sdk/
+deftaudio_ref/
+
+# macOS / editor noise
+.DS_Store
+*.swp
+*~
