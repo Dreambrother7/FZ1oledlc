@@ -51,6 +51,7 @@ Pico to SSD1309 OLED:
 - Captured nibbles are decoded with active-low inversion plus the `nibbleflip` lookup.
 - Hardware testing showed every nibble is captured twice in adjacent pairs. `flush_packet()` therefore collapses packets only when all adjacent pairs match, turning `A A B B C C...` into `A B C...`.
 - Command/data packets are split by #OP state changes, with a timeout fallback for idle gaps.
+- The FZ-1 font uses extended character codes. The menu cursor arrow is glyph `0xEE`, so rendering must use the full 256-entry `font` table rather than clamping characters above `0x7F` to spaces.
 
 ## Known Good Result
 

@@ -179,8 +179,7 @@ void display_char_fz1(uint8_t row, uint8_t col, uint8_t chr) {
     uint8_t page = 7 - row;
 
     oled_set_cursor(page, column);
-    uint8_t safe_chr = (chr < 128) ? chr : 32;
-    oled_send_data_buf((const uint8_t*)font[safe_chr], 6);
+    oled_send_data_buf((const uint8_t*)font[chr], 6);
     text_mem[row][col / 12] = chr;
 }
 
@@ -204,13 +203,12 @@ void display_xor_fz1(uint8_t row, uint8_t col, const uint8_t* data, uint8_t len)
     uint8_t column = calc_column(col);
     uint8_t page = 7 - row;
     uint8_t ch = text_mem[row][col / 12];
-    uint8_t safe_ch = (ch < 128) ? ch : 32;
 
     oled_set_cursor(page, column);
     uint8_t xor_buf[6];
     uint8_t xlen = (len < 6) ? len : 6;
     for (int x = 0; x < xlen; x++) {
-        xor_buf[x] = font[safe_ch][x] ^ data[x];
+        xor_buf[x] = font[ch][x] ^ data[x];
     }
     oled_send_data_buf(xor_buf, xlen);
 }
