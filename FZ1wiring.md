@@ -38,7 +38,7 @@
 ---
 
 ## 3. Display Output (Pico -> OLED SPI)
-*Note: These connections do not go through the level shifter. They are 3.3V logic wired directly from the Pico to the Display.*
+*Note: These connections are 3.3V logic wired directly from the Pico to the Display.*
 
 | RP2040 Pico Pin | SPI Function | SSD1309 OLED Pin |
 | :--- | :--- | :--- |
