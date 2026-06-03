@@ -133,12 +133,16 @@ build/FZ1_display.uf2
 
 ## Flashing The Pico
 
+The easiest route is to download the prebuilt `FZ1_display.uf2` file from the repository's GitHub Releases page. If you are modifying the firmware, build it locally and use the UF2 produced at `build/FZ1_display.uf2`.
+
 1. Hold the Pico `BOOTSEL` button while connecting it over USB.
 2. The Pico appears as a USB mass-storage device.
-3. Copy `build/FZ1_display.uf2` to the Pico.
+3. Copy `FZ1_display.uf2` to the Pico.
 4. The Pico reboots automatically into the firmware.
 
 Once installed in the FZ-1, the firmware is silent: there is no boot test pattern and no serial output.
+
+Maintainers can create a GitHub Release by pushing a version tag such as `v0.1.0`. The release workflow builds the firmware and attaches `FZ1_display.uf2` to the release automatically.
 
 ## Testing
 
