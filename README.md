@@ -34,6 +34,15 @@ In short:
 - `images/` - Photos of the original display board, cut connector board, assembled electronics, and installed working display.
 - `3D printed mount/` - STL files for printing the display mounting plate and brackets.
 
+## Image References
+
+- `images/Original display board.jpeg` - Original FZ-1 display board before modification.
+- `images/Original connector before cutting.jpeg` - Original connector area before cutting the donor display board.
+- `images/Pico and display wiring.jpeg` - Pico, OLED, and resistor divider wiring.
+- `images/Full display adapter.jpeg` - Assembled display adapter wiring.
+- `images/Boot logo.jpeg` - Working OLED showing the FZ-1 boot logo.
+- `images/Main menu.jpeg` - Working OLED showing the FZ-1 main menu.
+
 ## Parts
 
 Core parts:
