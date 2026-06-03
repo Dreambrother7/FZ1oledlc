@@ -51,6 +51,6 @@
 ---
 
 ### Bench Checklist:
-- [ ] **Check 5V First:** Before connecting the Pico or TXB0108, turn on the FZ-1 and use a multimeter to verify a steady ~5.0V on FZ-1 Pin 5 relative to Pin 6.
-- [ ] **Verify Output Enable:** Ensure the `OE` pin on the TXB0108 is tied to 3.3V. If left floating or tied to ground, the chip will not transmit data.
+- [ ] **Check 5V First:** Before connecting the Pico, turn on the FZ-1 and use a multimeter to verify a steady ~5.0V on FZ-1 Pin 5 relative to Pin 6.
+- [ ] **Verify Divider Outputs:** Before connecting the Pico, confirm each resistor divider output is safely around 3.3V or lower.
 - [ ] **Check Contiguity:** Verify that `GP0` through `GP6` are strictly in order, as the PIO state machine code relies on this physical sequence.
