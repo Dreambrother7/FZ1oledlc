@@ -92,6 +92,8 @@ See `FZ1wiring.md` for the full wiring table.
 
 The prototype reuses part of the original display board as a connector breakout. The original display PCB is cut so that the FZ-1 ribbon connector section can be retained, and wires are soldered to that retained connector section.
 
+If you do not want to cut the original display board, or if your FZ-1 no longer has that board available, the [Deftaudio/Casio-FZ-1 repository](https://github.com/Deftaudio/Casio-FZ-1) includes an alternative [IDC adapter PCB design](https://github.com/Deftaudio/Casio-FZ-1/tree/main/OLED%20upgrade%20by%20Dmitrins/fz1_oled_IDC_adapter). That adapter provides a way to build a new connector interface rather than harvesting the original display board connector.
+
 The OLED is held in a custom 3D printed mount designed to match the shape of the display module and closely follow the original FZ-1 mounting plate. Additional brackets secure the assembly inside the synthesizer.
 
 Photos and installation references should be placed in `images/`. 3D printable files should be placed in `3D printed mount/`.
@@ -160,7 +162,7 @@ The Pico GPIOs are not 5V tolerant.
 
 ## Credits
 
-This project was developed with reference to Dmitri Sytov's AVR-based FZ/VZ OLED work, included locally during development under `deftaudio_ref/`. The RP2040 firmware in this repository ports the concept to a Raspberry Pi Pico using PIO, DMA, and SPI.
+This project was developed with reference to the OLED upgrade material preserved in the [Deftaudio/Casio-FZ-1 repository](https://github.com/Deftaudio/Casio-FZ-1). Those files include a copy of the original AVR-based FZ/VZ OLED design by Dmitri Sytov, known as Dmitrins, who shared it on the [Yamahamusicians forum](https://yamahamusicians.com/forum/viewtopic.php?t=10666&start=240). The RP2040 firmware in this repository ports the concept to a Raspberry Pi Pico using PIO, DMA, and SPI.
 
 ## License
 
