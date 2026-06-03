@@ -1,10 +1,10 @@
 # Casio FZ-1 OLED Display Replacement
 
-A DIY replacement display for the Casio FZ-1 sampler/synthesizer using a Raspberry Pi Pico and a generic SSD1309 OLED module.
+A low cost DIY replacement display for the Casio FZ-1 sampler/synthesizer using a Raspberry Pi Pico and a generic SSD1309 OLED module.
 
-This project replaces the original ageing FZ-1 LCD with inexpensive, readily available parts. The goal is to make the repair practical for ordinary owners: no custom PCB, no rare display module, no specialist programmable logic, and no expensive donor parts. The working prototype uses a Pi Pico, a 128x64 SPI SSD1309 OLED, simple resistor dividers for 5V-to-3.3V logic conversion, and a 3D printed mounting plate.
+This project replaces the original ageing FZ-1 LCD with inexpensive, readily available parts. The goal is to make the repair practical and affordable for ordinary owners: no custom PCB, no rare display module, no specialist programmable logic, and no expensive donor parts. The working prototype uses a Pi Pico, a 128x64 SPI SSD1309 OLED, simple resistor dividers for 5V-to-3.3V logic conversion, and a 3D printed mounting plate.
 
-> Project status: working prototype. The firmware renders the FZ-1 menu and boot screens correctly on real hardware. More long-term testing is still in progress.
+> Project status: working prototype. The firmware renders the FZ-1 menu and boot screens correctly on real hardware. More long-term testing is still in progress. Please report any observed issues or unwanted behaviour.
 
 ## Why This Exists
 
@@ -32,7 +32,7 @@ In short:
 - `font.h` - 256-character FZ-compatible 6x8 font table.
 - `FZ1wiring.md` - Detailed wiring reference.
 - `images/` - Photos of the original display board, cut connector board, assembled electronics, and installed working display.
-- `3D printed mount/` - Display mounting plate and brackets.
+- `3D printed mount/` - STL files for printing the display mounting plate and brackets.
 
 ## Parts
 
@@ -45,7 +45,7 @@ Core parts:
 - Hookup wire, soldering tools, and basic mounting hardware.
 - 3D printed OLED mount and brackets from `3D printed mount/`.
 
-The prototype uses resistor dividers rather than active level-shifter ICs. Bidirectional auto-sensing level shifters were not reliable with the FZ-1 display bus.
+The prototype uses resistor dividers rather than active level-shifter ICs. Bidirectional auto-sensing level shifters were originally tested and proved incompatible with the FZ-1 display bus.
 
 ## Hardware Overview
 
@@ -116,7 +116,7 @@ Implementation details:
 
 ## Building The Firmware
 
-Install the Raspberry Pi Pico SDK and an ARM embedded GCC toolchain. On macOS, the working setup for this project uses the `gcc-arm-embedded` Homebrew cask.
+Install the Raspberry Pi Pico SDK and an ARM embedded GCC toolchain. On macOS, the tested working setup for this project uses the `gcc-arm-embedded` Homebrew cask.
 
 Configure and build:
 

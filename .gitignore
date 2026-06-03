@@ -13,6 +13,7 @@ build-*/
 # Local dependency checkouts / references
 pico-sdk/
 deftaudio_ref/
+AI_HANDOFF.md
 
 # macOS / editor noise
 .DS_Store
