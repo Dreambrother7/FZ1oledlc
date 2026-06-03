@@ -170,4 +170,6 @@ This project was developed with reference to the OLED upgrade material preserved
 
 ## License
 
-License to be decided before public release.
+This project is released under the MIT License. See `LICENSE` for the full license text.
+
+Third-party reference material is credited above and remains the work of its original authors.
