@@ -2,7 +2,7 @@
 
 A low cost DIY replacement display for the Casio FZ-1 sampler/synthesizer using a Raspberry Pi Pico and a generic SSD1309 OLED module.
 
-This project replaces the original ageing FZ-1 LCD with inexpensive, readily available parts. The goal is to make the repair practical and affordable for ordinary owners: no custom PCB, no rare display module, no specialist programmable logic, and no expensive donor parts. The working prototype uses a Pi Pico, a 128x64 SPI SSD1309 OLED, simple resistor dividers for 5V-to-3.3V logic conversion, and a 3D printed mounting plate.
+This project replaces the original ageing FZ-1 LCD with inexpensive, readily available parts. The goal is to make the repair practical and affordable for ordinary owners: no rare display module, no specialist programmable logic, and no expensive donor parts. The working prototype uses a Pi Pico, a 128x64 SPI SSD1309 OLED, simple resistor dividers for 5V-to-3.3V logic conversion, and a 3D printed mounting plate.
 
 > Project status: working prototype. The firmware renders the FZ-1 menu and boot screens correctly on real hardware. More long-term testing is still in progress. Please report any observed issues or unwanted behaviour.
 
@@ -27,7 +27,9 @@ In short:
 
 ## Repository Contents
 
-- `main.cpp` - Pico firmware, OLED driver, FZ-1 protocol parser, and renderer.
+- `main.cpp` - Main FZ-1 display firmware, protocol parser, renderer, and screensaver.
+- `oled_ssd1309.cpp` / `oled_ssd1309.h` - Shared SSD1309 OLED driver.
+- `oled_test.cpp` - Standalone OLED wiring/display test firmware.
 - `fz1_capture.pio` - PIO program for sampling the FZ-1 display bus.
 - `font.h` - 256-character FZ-compatible 6x8 font table.
 - `FZ1wiring.md` - Detailed wiring reference.
@@ -49,12 +51,15 @@ Core parts:
 
 - Casio FZ-1 with original display connector/board available.
 - Raspberry Pi Pico or compatible RP2040 Pico board.
+- Raspberry Pi Pico 2 for experimental RP2350 testing.
 - 128x64 SPI OLED module using SSD1309 controller.
 - 1kΩ and 2kΩ resistors for voltage dividers on the FZ-1 bus signals.
 - Hookup wire, soldering tools, and basic mounting hardware.
 - 3D printed OLED mount and brackets from `3D printed mount/`.
 
 The prototype uses resistor dividers rather than active level-shifter ICs. Bidirectional auto-sensing level shifters were originally tested and proved incompatible with the FZ-1 display bus.
+
+Pico 2 support is experimental. RP2350 fault-tolerant digital input pins can tolerate higher input voltages under the conditions specified in the RP2350 datasheet, but this project was first proven on an original Pico using resistor dividers. Keep the resistor-divider build as the known-good reference until the direct Pico 2 wiring has been tested on real FZ-1 hardware. See the official [RP2350 datasheet](https://pip.raspberrypi.com/documents/RP-008373-DS-2-rp2350-datasheet.pdf) and [Pico 2 datasheet](https://pip.raspberrypi.com/documents/RP-008299-DS-pico-2-datasheet.pdf) before omitting level shifting.
 
 ## Hardware Overview
 
@@ -97,6 +102,8 @@ Important: disconnect the Pico from USB when powering it from the FZ-1 `VSYS` co
 
 See `FZ1wiring.md` for the full wiring table.
 
+For Pico 2 testing, the firmware builds with `PICO_BOARD=pico2` using the same GP0-GP6 FZ-1 bus pin mapping and the same GP17-GP21 OLED pin mapping.
+
 ## Physical Installation
 
 The prototype reuses part of the original display board as a connector breakout. The original display PCB is cut so that the FZ-1 ribbon connector section can be retained, and wires are soldered to that retained connector section.
@@ -109,12 +116,13 @@ Photos and installation references should be placed in `images/`. 3D printable f
 
 ## Firmware Overview
 
-The firmware has four main jobs:
+The firmware has five main jobs:
 
 1. Initialize the SSD1309 OLED over SPI.
 2. Use PIO to sample the FZ-1 display bus on PH2 clock edges while #CE is active.
 3. Decode the FZ-1 command/data packets.
 4. Render text and graphics to the OLED using the FZ-1 font.
+5. Enter a framebuffer-backed idle screensaver after five minutes without FZ-1 display content changes.
 
 Implementation details:
 
@@ -122,6 +130,7 @@ Implementation details:
 - The physical data wiring is reversed, so decoded nibbles are bit-reversed with a lookup table.
 - Hardware testing showed that each nibble is captured twice in adjacent pairs. The parser conservatively collapses packets only when every adjacent pair matches.
 - The FZ-1 cursor arrow uses extended font glyph `0xEE`, so the renderer uses the full 256-entry font table.
+- The screensaver draws a sparse twinkling star field, then restores the last real FZ-1 display image before processing new bus activity.
 
 ## Building The Firmware
 
@@ -134,15 +143,37 @@ cmake -S . -B build -DPICO_SDK_PATH=/path/to/pico-sdk
 cmake --build build
 ```
 
-The build produces:
+The default Pico build produces:
 
 ```text
 build/FZ1_display.uf2
+build/FZ1_oled_test.uf2
+```
+
+To build for Pico 2:
+
+```bash
+cmake -S . -B build-pico2 -DPICO_SDK_PATH=/path/to/pico-sdk -DPICO_BOARD=pico2
+cmake --build build-pico2
+```
+
+That produces:
+
+```text
+build-pico2/FZ1_display.uf2
+build-pico2/FZ1_oled_test.uf2
 ```
 
 ## Flashing The Pico
 
-The easiest route is to download the prebuilt `FZ1_display.uf2` file from the repository's GitHub Releases page. If you are modifying the firmware, build it locally and use the UF2 produced at `build/FZ1_display.uf2`.
+The easiest route is to download a prebuilt UF2 file from the repository's GitHub Releases page:
+
+- `FZ1_display_pico.uf2` - Main firmware for Raspberry Pi Pico.
+- `FZ1_oled_test_pico.uf2` - OLED wiring test for Raspberry Pi Pico.
+- `FZ1_display_pico2.uf2` - Experimental main firmware for Raspberry Pi Pico 2.
+- `FZ1_oled_test_pico2.uf2` - OLED wiring test for Raspberry Pi Pico 2.
+
+If you are modifying the firmware, build it locally and use the UF2 produced in your build directory.
 
 1. Hold the Pico `BOOTSEL` button while connecting it over USB.
 2. The Pico appears as a USB mass-storage device.
@@ -151,7 +182,20 @@ The easiest route is to download the prebuilt `FZ1_display.uf2` file from the re
 
 Once installed in the FZ-1, the firmware is silent: there is no boot test pattern and no serial output.
 
-Maintainers can create a GitHub Release by pushing a version tag such as `v0.1.0`. The release workflow builds the firmware and attaches `FZ1_display.uf2` to the release automatically.
+Maintainers can create a GitHub Release by pushing a version tag such as `v0.1.0`. The release workflow builds Pico and Pico 2 UF2 files and attaches them to the release automatically.
+
+## OLED Wiring Test Firmware
+
+Flash `FZ1_oled_test_pico.uf2` or `FZ1_oled_test_pico2.uf2` before connecting the FZ-1 display bus if you want to confirm that the OLED module is powered and wired correctly.
+
+The test firmware cycles through:
+
+- A full-screen checkerboard.
+- A text screen showing `FZ-1 OLED TEST`, `SSD1309 SPI OK`, and `PICO WIRING OK`.
+- A full-white screen.
+- A blank screen.
+
+If this test works but the FZ-1 firmware does not, the OLED wiring is probably good and the next area to check is the FZ-1 bus wiring.
 
 ## Testing
 
@@ -162,6 +206,7 @@ Basic checks:
 - Main menu text should be aligned and readable.
 - Cursor arrow should appear and move with the FZ-1 cursor buttons.
 - Switching pages and menus should not leave stale pixels or corrupt text.
+- After five minutes without FZ-1 display content changes, the screen should switch to a sparse twinkling star field and then restore the previous FZ-1 screen on the next real display update.
 
 If the display is blank, verify power, common ground, OLED SPI wiring, and reset/DC pins.
 
@@ -171,7 +216,9 @@ If the display is garbled, verify the FZ-1 bus wiring order, resistor dividers, 
 
 This modification requires opening the synthesizer and working near vintage electronics. Work carefully, disconnect power before soldering, and double-check the 5V-to-3.3V dividers before connecting the Pico.
 
-The Pico GPIOs are not 5V tolerant.
+Original Pico/RP2040 GPIOs are not 5V tolerant.
+
+Pico 2/RP2350 direct 5V input testing is experimental. Do not assume that a wiring change is safe unless the exact board, power sequence, and GPIO limits have been checked against the official Raspberry Pi documentation.
 
 ## Credits
 

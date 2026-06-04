@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    name: Build FZ1_display.uf2
+    name: Build release UF2 files
     runs-on: ubuntu-latest
 
     steps:
@@ -29,24 +29,38 @@ jobs:
           cd pico-sdk
           git submodule update --init --depth 1
 
-      - name: Configure
-        run: cmake -S . -B build -DPICO_SDK_PATH="$PWD/pico-sdk" -DCMAKE_BUILD_TYPE=Release
+      - name: Configure Pico
+        run: cmake -S . -B build-pico -DPICO_SDK_PATH="$PWD/pico-sdk" -DPICO_BOARD=pico -DCMAKE_BUILD_TYPE=Release
 
-      - name: Build
-        run: cmake --build build --parallel
+      - name: Build Pico
+        run: cmake --build build-pico --parallel
+
+      - name: Configure Pico 2
+        run: cmake -S . -B build-pico2 -DPICO_SDK_PATH="$PWD/pico-sdk" -DPICO_BOARD=pico2 -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Pico 2
+        run: cmake --build build-pico2 --parallel
+
+      - name: Collect release files
+        run: |
+          mkdir dist
+          cp build-pico/FZ1_display.uf2 dist/FZ1_display_pico.uf2
+          cp build-pico/FZ1_oled_test.uf2 dist/FZ1_oled_test_pico.uf2
+          cp build-pico2/FZ1_display.uf2 dist/FZ1_display_pico2.uf2
+          cp build-pico2/FZ1_oled_test.uf2 dist/FZ1_oled_test_pico2.uf2
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FZ1_display.uf2
-          path: build/FZ1_display.uf2
+          name: release-uf2-files
+          path: dist/*.uf2
 
       - name: Attach UF2 to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" build/FZ1_display.uf2 \
+          gh release create "$GITHUB_REF_NAME" dist/*.uf2 \
             --title "$GITHUB_REF_NAME" \
             --notes "Prebuilt UF2 firmware for the Casio FZ-1 OLED Display Replacement." \
             --verify-tag

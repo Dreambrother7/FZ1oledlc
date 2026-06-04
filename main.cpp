@@ -1,41 +1,13 @@
 #include "pico/stdlib.h"
-#include "hardware/spi.h"
 #include "hardware/dma.h"
 #include "hardware/pio.h"
 #include "fz1_capture.pio.h"
 #include "font.h"
-
-// SPI OLED Definitions (SSD1309)
-#define SPI_PORT spi0
-#define PIN_CS   17
-#define PIN_SDA  19
-#define PIN_SCL  18
-#define PIN_DC   20
-#define PIN_RES  21
+#include "oled_ssd1309.h"
 
 // FZ-1 Input pins start at GP0
 #define FZ1_PIN_BASE 0
 #define FZ1_PIN_COUNT 7
-
-// SSD1309 Commands
-#define OLED_DISPLAYOFF       0xAE
-#define OLED_DISPLAYON        0xAF
-#define OLED_SETCONTRAST      0x81
-#define OLED_NORMALDISPLAY    0xA6
-#define OLED_INVERTDISPLAY    0xA7
-#define OLED_DISPLAYALLON_RESUME 0xA4
-#define OLED_SETMULTIPLEX     0xA8
-#define OLED_SETDISPLAYOFFSET 0xD3
-#define OLED_SETDISPLAYCLOCKDIV 0xD5
-#define OLED_SETPRECHARGE     0xD9
-#define OLED_SETCOMPINS       0xDA
-#define OLED_SETVCOMDETECT    0xDB
-#define OLED_SETSTARTLINE     0x40
-#define OLED_SEGREMAP         0xA0
-#define OLED_COMSCANDEC       0xC8
-#define OLED_PAGEADDRSET      0xB0
-#define OLED_COLUMNADDRSETH   0x10
-#define OLED_COLUMNADDRSETL   0x00
 
 // FZ-1 Protocol
 #define FZ_GRAPHIC  0x02
@@ -46,6 +18,8 @@
 #define HORIZONTAL_OFFSET 3
 #define PACKET_GAP_US 2000
 #define PACKET_IDLE_FLUSH_US 50000
+#define SCREENSAVER_IDLE_US (5ULL * 60ULL * 1000ULL * 1000ULL)
+#define SCREENSAVER_FRAME_US 90000
 
 // Nibble bit-reversal LUT (matching reference nibbleflip)
 static const uint8_t nibbleflip[16] = {
@@ -55,6 +29,7 @@ static const uint8_t nibbleflip[16] = {
 
 // Text memory for XOR operations
 static uint8_t text_mem[8][24];
+static uint8_t display_buf[OLED_PAGES][OLED_WIDTH];
 
 // State from last command packet
 static uint8_t last_cmd = 0;
@@ -62,102 +37,86 @@ static uint8_t last_flags = 0;
 static uint8_t last_col = 0;
 static uint8_t last_row = 0;
 
+static uint32_t rng_state = 0x4F4C4544u;
+static uint64_t last_display_change_time = 0;
+static bool screensaver_active = false;
 
-// ===== SPI OLED Low-Level =====
-
-void oled_send_cmd(uint8_t cmd) {
-    gpio_put(PIN_CS, 0);
-    gpio_put(PIN_DC, 0);
-    spi_write_blocking(SPI_PORT, &cmd, 1);
-    gpio_put(PIN_CS, 1);
+static uint32_t rand32() {
+    rng_state ^= rng_state << 13;
+    rng_state ^= rng_state >> 17;
+    rng_state ^= rng_state << 5;
+    return rng_state;
 }
 
-void oled_send_data(uint8_t data) {
-    gpio_put(PIN_CS, 0);
-    gpio_put(PIN_DC, 1);
-    spi_write_blocking(SPI_PORT, &data, 1);
-    gpio_put(PIN_CS, 1);
-}
+static void display_restore();
 
-void oled_send_data_buf(const uint8_t *buf, size_t len) {
-    gpio_put(PIN_CS, 0);
-    gpio_put(PIN_DC, 1);
-    spi_write_blocking(SPI_PORT, buf, len);
-    gpio_put(PIN_CS, 1);
-}
+static void display_write(uint8_t page, uint8_t col, const uint8_t* data, uint8_t len) {
+    if (page >= OLED_PAGES || col >= OLED_WIDTH || len == 0) {
+        return;
+    }
+    if (col + len > OLED_WIDTH) {
+        len = OLED_WIDTH - col;
+    }
 
-void oled_set_cursor(uint8_t page, uint8_t col) {
-    oled_send_cmd(OLED_PAGEADDRSET | page);
-    oled_send_cmd(OLED_COLUMNADDRSETL | (col & 0x0F));
-    oled_send_cmd(OLED_COLUMNADDRSETH | ((col >> 4) & 0x0F));
-}
-
-void oled_init() {
-    spi_init(SPI_PORT, 10 * 1000 * 1000);
-    gpio_set_function(PIN_SDA, GPIO_FUNC_SPI);
-    gpio_set_function(PIN_SCL, GPIO_FUNC_SPI);
-    gpio_init(PIN_CS); gpio_set_dir(PIN_CS, GPIO_OUT); gpio_put(PIN_CS, 1);
-    gpio_init(PIN_DC); gpio_set_dir(PIN_DC, GPIO_OUT); gpio_put(PIN_DC, 0);
-    gpio_init(PIN_RES); gpio_set_dir(PIN_RES, GPIO_OUT);
-
-    // Reset sequence
-    gpio_put(PIN_RES, 1); sleep_ms(1);
-    gpio_put(PIN_RES, 0); sleep_ms(15);
-    gpio_put(PIN_RES, 1); sleep_ms(15);
-
-    // Init sequence closely matching reference (SSD1309)
-    oled_send_cmd(OLED_DISPLAYOFF);
-
-    oled_send_cmd(0xAD);  // Master Configuration
-    oled_send_cmd(0x8E);  // External VCC
-
-    oled_send_cmd(OLED_SETMULTIPLEX);
-    oled_send_cmd(0x3F);  // 1/64 duty
-
-    oled_send_cmd(OLED_SETDISPLAYOFFSET);
-    oled_send_cmd(0x00);
-
-    oled_send_cmd(OLED_SETSTARTLINE | 0x00);
-
-    oled_send_cmd(OLED_NORMALDISPLAY);  // 0xA6 - Normal (not inverted)
-
-    oled_send_cmd(OLED_SETVCOMDETECT);
-    oled_send_cmd(0x3C);  // ~0.83xVCC
-
-    oled_send_cmd(OLED_DISPLAYALLON_RESUME);
-
-    oled_send_cmd(OLED_SETCONTRAST);
-    oled_send_cmd(0x6F);
-
-    oled_send_cmd(OLED_SETDISPLAYCLOCKDIV);
-    oled_send_cmd(0xF0);  // 105Hz
-
-    oled_send_cmd(0xD8);  // Area Color mode
-    oled_send_cmd(0x05);  // Mono + low power
-
-    oled_send_cmd(OLED_SETCOMPINS);
-    oled_send_cmd(0x12);  // Alternative COM
-
-    oled_send_cmd(OLED_SETPRECHARGE);
-    oled_send_cmd(0xF2);
-    oled_send_cmd(0xFF);
-
-    oled_send_cmd(OLED_DISPLAYON);
-    oled_send_cmd(OLED_COMSCANDEC);  // 0xC8 - COM63 to COM0
-    oled_send_cmd(OLED_SEGREMAP);    // 0xA0 - No segment remap (matching reference)
-
-    sleep_ms(100);
-}
-
-void oled_clear() {
-    for (int y = 0; y < 8; y++) {
-        oled_set_cursor(y, 0);
-        for (int x = 0; x < 128; x++) {
-            oled_send_data(0);
+    bool changed = false;
+    for (uint8_t i = 0; i < len; i++) {
+        if (display_buf[page][col + i] != data[i]) {
+            changed = true;
         }
+        display_buf[page][col + i] = data[i];
+    }
+
+    if (changed) {
+        last_display_change_time = time_us_64();
+    }
+
+    if (screensaver_active) {
+        if (changed) {
+            screensaver_active = false;
+            display_restore();
+        }
+        return;
+    }
+
+    oled_write(page, col, data, len);
+}
+
+static void display_restore() {
+    for (uint8_t page = 0; page < OLED_PAGES; page++) {
+        oled_write(page, 0, display_buf[page], OLED_WIDTH);
+    }
+}
+
+static void display_clear_state() {
+    for (int page = 0; page < OLED_PAGES; page++) {
+        for (int col = 0; col < OLED_WIDTH; col++) {
+            display_buf[page][col] = 0;
+        }
+    }
+    for (int y = 0; y < 8; y++) {
         for (int j = 0; j < 24; j++) {
             text_mem[y][j] = ' ';
         }
+    }
+    oled_clear();
+    last_display_change_time = time_us_64();
+}
+
+static void screensaver_frame() {
+    uint8_t page_buf[OLED_WIDTH];
+
+    for (uint8_t page = 0; page < OLED_PAGES; page++) {
+        for (uint8_t col = 0; col < OLED_WIDTH; col++) {
+            uint8_t stars = 0;
+            if ((rand32() & 0x0F) == 0) {
+                stars = 1u << (rand32() & 0x07);
+            }
+            if ((rand32() & 0x3F) == 0) {
+                stars |= 1u << (rand32() & 0x07);
+            }
+            page_buf[col] = stars;
+        }
+        oled_write(page, 0, page_buf, sizeof(page_buf));
     }
 }
 
@@ -178,8 +137,7 @@ void display_char_fz1(uint8_t row, uint8_t col, uint8_t chr) {
     uint8_t column = calc_column(col);
     uint8_t page = 7 - row;
 
-    oled_set_cursor(page, column);
-    oled_send_data_buf((const uint8_t*)font[chr], 6);
+    display_write(page, column, (const uint8_t*)font[chr], 6);
     text_mem[row][col / 12] = chr;
 }
 
@@ -191,8 +149,7 @@ void display_new_fz1(uint8_t row, uint8_t col, const uint8_t* data, uint8_t len)
     uint8_t column = calc_column(col);
     uint8_t page = 7 - row;
 
-    oled_set_cursor(page, column);
-    oled_send_data_buf(data, len);
+    display_write(page, column, data, len);
 }
 
 void display_xor_fz1(uint8_t row, uint8_t col, const uint8_t* data, uint8_t len) {
@@ -204,13 +161,12 @@ void display_xor_fz1(uint8_t row, uint8_t col, const uint8_t* data, uint8_t len)
     uint8_t page = 7 - row;
     uint8_t ch = text_mem[row][col / 12];
 
-    oled_set_cursor(page, column);
     uint8_t xor_buf[6];
     uint8_t xlen = (len < 6) ? len : 6;
     for (int x = 0; x < xlen; x++) {
         xor_buf[x] = font[ch][x] ^ data[x];
     }
-    oled_send_data_buf(xor_buf, xlen);
+    display_write(page, column, xor_buf, xlen);
 }
 
 // ===== FZ-1 Protocol Handlers =====
@@ -326,7 +282,7 @@ void dma_init_ring(PIO pio, uint sm) {
 
 int main() {
     oled_init();
-    oled_clear();
+    display_clear_state();
 
     PIO pio = pio0;
     uint sm = 0;
@@ -341,9 +297,12 @@ int main() {
     uint32_t packet_len = 0;
     static uint8_t local_packet_buf[8192];
     uint64_t last_nibble_time = time_us_64();
+    uint64_t last_screensaver_frame_time = 0;
     uint32_t ring_tail = 0;
+    last_display_change_time = last_nibble_time;
 
     while (true) {
+        uint64_t now = time_us_64();
         uint32_t ring_head = ((uint32_t)dma_hw->ch[dma_chan].write_addr - (uint32_t)ring_buf);
 
         if (ring_tail != ring_head) {
@@ -359,7 +318,7 @@ int main() {
             // GP6 = #OP: LOW (0) = command mode, HIGH (1) = data mode
             bool current_is_command = ((payload >> 6) & 0x01) == 0;
 
-            if (packet_active && (time_us_64() - last_nibble_time > PACKET_GAP_US)) {
+            if (packet_active && (now - last_nibble_time > PACKET_GAP_US)) {
                 flush_packet(is_command_mode, local_packet_buf, packet_len);
                 packet_active = false;
                 packet_len = 0;
@@ -377,13 +336,19 @@ int main() {
             if (packet_len < sizeof(local_packet_buf)) {
                 local_packet_buf[packet_len++] = decoded_nibble;
             }
-            last_nibble_time = time_us_64();
+            last_nibble_time = now;
 
-        } else if (packet_active && (time_us_64() - last_nibble_time > PACKET_IDLE_FLUSH_US)) {
+        } else if (packet_active && (now - last_nibble_time > PACKET_IDLE_FLUSH_US)) {
             // Timeout → flush packet
             flush_packet(is_command_mode, local_packet_buf, packet_len);
             packet_active = false;
             packet_len = 0;
+        } else if (!packet_active && now - last_display_change_time > SCREENSAVER_IDLE_US) {
+            if (!screensaver_active || now - last_screensaver_frame_time > SCREENSAVER_FRAME_US) {
+                screensaver_frame();
+                screensaver_active = true;
+                last_screensaver_frame_time = now;
+            }
         }
     }
 }
