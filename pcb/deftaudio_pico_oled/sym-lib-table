@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name IC_Generic)(type Legacy)(uri ${KIPRJMOD}/libs/IC_Generic.lib)(options "")(descr ""))
+)

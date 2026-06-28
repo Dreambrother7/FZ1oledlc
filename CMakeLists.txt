@@ -7,52 +7,57 @@ project(FZ1_display C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-# Initialize the Pico SDK
 pico_sdk_init()
 
-add_library(oled_ssd1309
-    oled_ssd1309.cpp
+function(configure_common target variant_label)
+    target_link_libraries(${target}
+        pico_stdlib
+        hardware_spi
+    )
+    target_compile_definitions(${target}
+        PRIVATE OLED_VARIANT_LABEL="${variant_label}"
+    )
+    pico_enable_stdio_usb(${target} 0)
+    pico_enable_stdio_uart(${target} 0)
+    pico_add_extra_outputs(${target})
+endfunction()
+
+function(configure_main_firmware target variant_label)
+    add_executable(${target}
+        main.cpp
+        oled_ssd1309.cpp
+    )
+    configure_common(${target} "${variant_label}")
+    target_link_libraries(${target}
+        hardware_pio
+        hardware_dma
+    )
+    pico_generate_pio_header(${target} ${CMAKE_CURRENT_LIST_DIR}/fz1_capture.pio)
+endfunction()
+
+function(configure_test_firmware target variant_label)
+    add_executable(${target}
+        oled_test.cpp
+        oled_ssd1309.cpp
+    )
+    configure_common(${target} "${variant_label}")
+endfunction()
+
+configure_main_firmware(FZ1_display_original "ORIGINAL")
+configure_test_firmware(FZ1_oled_test_original "ORIGINAL")
+
+configure_main_firmware(FZ1_display_deftaudio_pcb "DEFTAUDIO PCB")
+configure_test_firmware(FZ1_oled_test_deftaudio_pcb "DEFTAUDIO PCB")
+
+target_compile_definitions(FZ1_display_deftaudio_pcb
+    PRIVATE
+        OLED_PIN_DC=21
+        OLED_PIN_RES=20
+        OLED_ROTATE_180=1
 )
-
-target_link_libraries(oled_ssd1309
-    pico_stdlib
-    hardware_spi
+target_compile_definitions(FZ1_oled_test_deftaudio_pcb
+    PRIVATE
+        OLED_PIN_DC=21
+        OLED_PIN_RES=20
+        OLED_ROTATE_180=1
 )
-
-# Main FZ-1 display firmware
-add_executable(FZ1_display
-    main.cpp
-)
-
-# Generate PIO header
-pico_generate_pio_header(FZ1_display ${CMAKE_CURRENT_LIST_DIR}/fz1_capture.pio)
-
-# Link hardware libraries
-target_link_libraries(FZ1_display
-    pico_stdlib
-    hardware_pio
-    hardware_dma
-    oled_ssd1309
-)
-
-# Disable stdio for the release/test firmware
-pico_enable_stdio_usb(FZ1_display 0)
-pico_enable_stdio_uart(FZ1_display 0)
-
-# Create map/bin/hex/uf2 files
-pico_add_extra_outputs(FZ1_display)
-
-# Standalone OLED wiring/display test firmware
-add_executable(FZ1_oled_test
-    oled_test.cpp
-)
-
-target_link_libraries(FZ1_oled_test
-    pico_stdlib
-    oled_ssd1309
-)
-
-pico_enable_stdio_usb(FZ1_oled_test 0)
-pico_enable_stdio_uart(FZ1_oled_test 0)
-
-pico_add_extra_outputs(FZ1_oled_test)

@@ -44,10 +44,14 @@ jobs:
       - name: Collect release files
         run: |
           mkdir dist
-          cp build-pico/FZ1_display.uf2 dist/FZ1_display_pico.uf2
-          cp build-pico/FZ1_oled_test.uf2 dist/FZ1_oled_test_pico.uf2
-          cp build-pico2/FZ1_display.uf2 dist/FZ1_display_pico2.uf2
-          cp build-pico2/FZ1_oled_test.uf2 dist/FZ1_oled_test_pico2.uf2
+          cp build-pico/FZ1_display_original.uf2 dist/FZ1_display_original_pico.uf2
+          cp build-pico/FZ1_display_deftaudio_pcb.uf2 dist/FZ1_display_deftaudio_pcb_pico.uf2
+          cp build-pico/FZ1_oled_test_original.uf2 dist/FZ1_oled_test_original_pico.uf2
+          cp build-pico/FZ1_oled_test_deftaudio_pcb.uf2 dist/FZ1_oled_test_deftaudio_pcb_pico.uf2
+          cp build-pico2/FZ1_display_original.uf2 dist/FZ1_display_original_pico2.uf2
+          cp build-pico2/FZ1_display_deftaudio_pcb.uf2 dist/FZ1_display_deftaudio_pcb_pico2.uf2
+          cp build-pico2/FZ1_oled_test_original.uf2 dist/FZ1_oled_test_original_pico2.uf2
+          cp build-pico2/FZ1_oled_test_deftaudio_pcb.uf2 dist/FZ1_oled_test_deftaudio_pcb_pico2.uf2
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4

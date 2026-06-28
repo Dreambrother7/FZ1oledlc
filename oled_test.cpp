@@ -3,6 +3,10 @@
 #include "font.h"
 #include "oled_ssd1309.h"
 
+#ifndef OLED_VARIANT_LABEL
+#define OLED_VARIANT_LABEL "ORIGINAL"
+#endif
+
 static void draw_text(uint8_t page, uint8_t col, const char *text) {
     while (*text && page < OLED_PAGES && col < OLED_WIDTH - 5) {
         oled_write(page, col, (const uint8_t *)font[(uint8_t)*text], 6);
@@ -31,8 +35,8 @@ int main() {
 
         oled_clear();
         draw_text(0, 22, "FZ-1 OLED TEST");
-        draw_text(2, 13, "SSD1309 SPI OK");
-        draw_text(4, 16, "PICO WIRING OK");
+        draw_text(2, 13, OLED_VARIANT_LABEL);
+        draw_text(4, 13, "SSD1309 SPI OK");
         draw_text(6, 19, "CHECK CONTRAST");
         sleep_ms(2500);
 
