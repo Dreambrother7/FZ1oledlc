@@ -127,7 +127,7 @@ For the Deftaudio PCB method:
 
 The prototype uses resistor dividers rather than active level-shifter ICs. Bidirectional auto-sensing level shifters were originally tested and proved incompatible with the FZ-1 display bus.
 
-Pico 2 / RP2350 builds are provided for experimenters, but they have not yet been confirmed on real FZ-1 hardware. If you are building the mod today, use the resistor-divider wiring shown in the wiring guide for your hardware method. Do not connect FZ-1 5V display-bus signals directly to any Pico 2 pin unless you have checked the exact board, power conditions, and GPIO limits against the official [RP2350 datasheet](https://pip.raspberrypi.com/documents/RP-008373-DS-2-rp2350-datasheet.pdf) and [Pico 2 datasheet](https://pip.raspberrypi.com/documents/RP-008299-DS-pico-2-datasheet.pdf).
+Pico 2 / RP2350 builds are provided for experimenters, but they have not yet been confirmed on real FZ-1 hardware. If you are building the mod today, use the resistor-divider wiring shown in the wiring guide for your hardware method. Do not connect FZ-1 5V display-bus signals directly to any Pico 2 pin unless you have checked the exact board, power conditions, and GPIO limits against the official [RP2350 datasheet](https://pip.raspberrypi.com/documents/RP-008373-DS-2-rp2350-datasheet.pdf) and [Pico 2 datasheet](https://pip.raspberrypi.com/documents/RP-008299-DS-pico-2-datasheet.pdf). One concern is that the RP2350 pins are only 5V tolerant after power on and if the FZ pushes 5V to the pins before power on is complete, damage is possible.
 
 ## Physical Installation
 
