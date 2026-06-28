@@ -1,10 +1,10 @@
-# Casio FZ-1 OLED Display Replacement
+# Casio FZ-Series OLED Display Replacement
 
-A low cost DIY replacement display for the Casio FZ-1 sampler/synthesizer using a Raspberry Pi Pico and a generic SSD1309 OLED module.
+A low cost DIY replacement display for the Casio FZ-1, FZ-10M, FZ-20M, and related FZ/VZ-series sampler/synthesizer modules using a Raspberry Pi Pico and a generic SSD1309 OLED module.
 
-This project replaces the original ageing FZ-1 LCD with inexpensive, readily available parts. The goal is to make the repair practical and affordable for ordinary owners: no rare display module, no specialist programmable logic, and no expensive donor parts. There are now two supported build methods: a hand-wired version using the 3D printed OLED mount, and a Deftaudio PCB version that carries the Pico and OLED on a purpose-made board.
+This project replaces the original ageing Casio FZ-series LCD with inexpensive, readily available parts. The goal is to make the repair practical and affordable for ordinary owners: no rare display module, no specialist programmable logic, and no expensive donor parts. There are now two supported build methods: a hand-wired version using the 3D printed OLED mount, and a Deftaudio PCB version that carries the Pico and OLED on a purpose-made board.
 
-> Project status: working prototype. The firmware renders the FZ-1 menu and boot screens correctly on real hardware. More long-term testing is still in progress. Please report any observed issues or unwanted behaviour.
+> Project status: working prototype. The firmware renders the Casio FZ-series menu and boot screens correctly on tested hardware, including Deftaudio PCB testing on FZ-1, FZ-10, and FZ-20 units. More long-term testing is still in progress. Please report any observed issues or unwanted behaviour.
 
 ## Current Revision
 
