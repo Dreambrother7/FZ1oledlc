@@ -1,0 +1,111 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP IC4
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC6
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC8
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC10
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC12
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC14
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC16
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC18
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC20
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC22
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC24
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC28
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC30
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC32
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC40
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC42
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC48
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+$CMP IC64
+D Generic IC
+K Generic IC
+F https://www.google.co.uk/search?q=datasheet
+$ENDCMP
+#
+#End Doc Library

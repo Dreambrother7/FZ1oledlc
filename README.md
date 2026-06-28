@@ -49,6 +49,7 @@ In short:
 - `images/` - Photos of the original display board, cut connector board, assembled electronics, and installed working display.
 - `3D printed mount/` - STL files for printing the display mounting plate and brackets.
 - `pcb/deftaudio_pico_oled/` - Deftaudio KiCad PCB project and exported Gerber/drill manufacturing files.
+- `pcb/deftaudio_connector_adapters/` - Deftaudio KiCad projects and Gerber zips for optional FZ-series IDC connector adapter boards.
 
 ## Image References
 
@@ -79,10 +80,13 @@ Use:
 
 This method uses the Deftaudio Pico OLED PCB. The board can be ordered by uploading `pcb/deftaudio_pico_oled/Pico_FZ1_OLED_PCB_gerbers.zip` to a PCB manufacturer such as PCBWay or a similar service. The loose Gerber/drill files are also included in `pcb/deftaudio_pico_oled/export1.0/`. The Pico and OLED attach to the PCB, and the PCB assembly then mounts directly in the synth.
 
+Deftaudio also provides optional IDC connector adapter boards for connecting the synth display harness to the Pico OLED PCB. The FZ-1 adapter and the FZ-10M/FZ-20M/VZ-10M adapter are included in `pcb/deftaudio_connector_adapters/`, each with KiCad source files and a ready-to-upload Gerber zip.
+
 Use:
 
 - Wiring file: `FZ1wiring-deftaudio-pcb.md`
 - PCB files: `pcb/deftaudio_pico_oled/`
+- Optional connector adapter PCB files: `pcb/deftaudio_connector_adapters/`
 - Main firmware: `FZ1_display_deftaudio_pcb_*.uf2`
 - OLED test firmware: `FZ1_oled_test_deftaudio_pcb_*.uf2`
 
@@ -117,6 +121,7 @@ For the original hand-wired method:
 For the Deftaudio PCB method:
 
 - PCB ordered from `pcb/deftaudio_pico_oled/Pico_FZ1_OLED_PCB_gerbers.zip`.
+- Optional connector adapter PCB ordered from the matching Gerber zip in `pcb/deftaudio_connector_adapters/`.
 - Components and headers required by the Deftaudio PCB design.
 - Soldering tools and mounting hardware appropriate to the PCB assembly.
 
@@ -128,7 +133,7 @@ Pico 2 / RP2350 builds are provided for experimenters, but they have not yet bee
 
 For the original hand-wired method, the prototype reuses part of the original display board as a connector breakout. The original display PCB is cut so that the FZ-1 ribbon connector section can be retained, and wires are soldered to that retained connector section. The OLED is held in a custom 3D printed mount designed to match the shape of the display module and closely follow the original FZ-1 mounting plate.
 
-For the Deftaudio PCB method, order the board by uploading `pcb/deftaudio_pico_oled/Pico_FZ1_OLED_PCB_gerbers.zip`, assemble the Pico and OLED onto the PCB, then install the completed PCB assembly in the synth. This avoids the large point-to-point wiring loom used by the original prototype method.
+For the Deftaudio PCB method, order the main board by uploading `pcb/deftaudio_pico_oled/Pico_FZ1_OLED_PCB_gerbers.zip`, assemble the Pico and OLED onto the PCB, then install the completed PCB assembly in the synth. If you want a PCB adapter for the synth-side display connector, order the matching board from `pcb/deftaudio_connector_adapters/`: one design is for FZ-1, and the other is for FZ-10M/FZ-20M/VZ-10M. This avoids the large point-to-point wiring loom used by the original prototype method.
 
 Photos and installation references should be placed in `images/`. 3D printable files should be placed in `3D printed mount/`.
 

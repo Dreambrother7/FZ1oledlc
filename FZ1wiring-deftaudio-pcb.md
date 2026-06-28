@@ -15,6 +15,13 @@ The Deftaudio PCB replaces most of the point-to-point wiring used by the origina
 
 The PCB layout mounts the OLED inverted compared with the original hand-wired build. It also routes OLED DC/A0 and RES/RST differently from the original wiring. The `deftaudio_pcb` firmware variant handles both differences in software by swapping the OLED control pins and rotating the SSD1309 output 180 degrees.
 
+Optional synth-side IDC connector adapter boards are included in `pcb/deftaudio_connector_adapters/`:
+
+- `fz1_oled_IDC_adapter_v2/` - FZ-1 connector adapter.
+- `fz10m_fz20m_vz10m_oled_IDC_adapter/` - FZ-10M, FZ-20M, and VZ-10M connector adapter.
+
+These adapter boards are separate from the main Pico OLED PCB. Use the adapter that matches the synth model you are installing into.
+
 ## PCB Files
 
 The KiCad project is in:
@@ -36,6 +43,13 @@ pcb/deftaudio_pico_oled/export1.0/
 ```
 
 The zip file is the simplest option for PCB manufacturers such as PCBWay or similar board houses.
+
+Optional connector adapter manufacturing zips are in:
+
+```text
+pcb/deftaudio_connector_adapters/fz1_oled_IDC_adapter_v2/fz1_oled_IDC_adapter_v2_gerbers.zip
+pcb/deftaudio_connector_adapters/fz10m_fz20m_vz10m_oled_IDC_adapter/fz10m_fz20m_vz10m_oled_IDC_adapter_gerbers.zip
+```
 
 ## FZ Display-Bus Header
 
